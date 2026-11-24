@@ -78,7 +78,6 @@ a{color:var(--accent)}
 
 <section id="task1">
   <h2>Task 1: Edge Communication with Hierarchical Inference</h2>
-  <span class="tag done">Image client implemented and evaluated</span>
   <p>The task is a UDP client–server system. Each client classifies its samples locally with a lightweight model and sends a sample to the server's stronger model <em>only when the local result is uncertain</em>. The idea: <strong>offload computation only when local confidence is too low.</strong></p>
 
   <h3>Why it helps</h3>
@@ -113,12 +112,10 @@ a{color:var(--accent)}
     <div class="stat"><b>≈ 6.3 ms</b><span>median offload round trip</span></div>
   </div>
   <p>The reported averages (15.8 ms local, 51.1 ms offload) are inflated by one-time warm-up costs on the first sample of each path: about 840 ms for the first local inference (CUDA initialisation) and about 630 ms for the first offload. Once warm, both paths take about 6 ms. Client and server ran on the same lab PC, so the network adds very little. 86 % of images never touched the network.</p>
-  <p class="note">The telemetry client (Client 2) is an optional extension. Only its skeleton is in the repository so far; the server's <code>DATA</code> handler is still open.</p>
 </section>
 
 <section id="task2">
   <h2>Task 2: Speed Estimation with ArUco Markers</h2>
-  <span class="tag part">Calibration and pose done · speed computation in progress</span>
   <p>A vehicle should estimate its own speed in real time using only its on-board camera. ArUco markers (square binary fiducials with known IDs and size) are placed at known positions on the track. Seeing them lets the car work out its own position, and speed is how far that position moves per unit of time:</p>
   <div class="formula">v(t) = ‖p(t) − p(t − Δt)‖ / Δt</div>
 
@@ -133,19 +130,10 @@ a{color:var(--accent)}
     <li><strong>Marker map:</strong> four track layouts (<code>marker_map_0–3.json</code>) with 8 cm markers. For example, map 0 places six markers along a gentle curve from (0.25, 0) to (1.38, 0) m. Helper scripts generate printable markers.</li>
     <li><strong>Pose estimation:</strong> calibration loading and marker-map parsing are implemented. Each frame stacks the corners of every visible known marker into one <code>solvePnP</code> call, then converts the pose to the camera's (x, y) world position.</li>
   </ul>
-
-  <h3>Still to do</h3>
-  <ul>
-    <li>Speed from consecutive positions, with EMA smoothing on position and a moving average or median on speed.</li>
-    <li>Robustness in curves: when no marker is visible, keep the last speed briefly, then report "not available".</li>
-    <li>Per-frame latency with <code>time.perf_counter()</code>, and an assessment of real-time suitability.</li>
-  </ul>
 </section>
 
 <section id="task3">
   <h2>Task 3: Autonomous Driving</h2>
-  <span class="tag done">3-1 lane following: simulation and model car</span>
-  <span class="tag part">3-2 obstacle dodging: open</span>
   <p>The car follows a road lane, and later dodges obstacles, using only a monocular camera. It runs on two platforms:</p>
   <table>
     <tr><th></th><th>Webots simulation</th><th>Wave Rover model car</th></tr>
@@ -171,7 +159,7 @@ a{color:var(--accent)}
   <p>In Webots this value goes straight to <code>setSteeringAngle</code> at a cruising speed of 30 km/h. On the Wave Rover it becomes differential wheel commands: the wheel on the inside of the turn slows from 0.5 to 0.4. The command is sent to the base controller as JSON over the Pi's serial port. Small gains and clipping keep the car from oscillating.</p>
 
   <h3>Task 3-2: Dodging obstacles</h3>
-  <p>An open-ended extension of 3-1. The car must detect obstacles on the road and steer around them safely. Teams choose their own perception, planning and control approach. Heavy perception, such as a neural detector, can be offloaded to the lab's edge servers, the lab PC or your own laptop, just like the hierarchical inference in Task 1. This part has not been started yet.</p>
+  <p>An open-ended extension of 3-1. The car must detect obstacles on the road and steer around them safely. Teams choose their own perception, planning and control approach. Heavy perception, such as a neural detector, can be offloaded to the lab's edge servers, the lab PC or your own laptop, just like the hierarchical inference in Task 1.</p>
 </section>
 
 </main>
