@@ -97,11 +97,14 @@ a{color:var(--accent)}
   <p>Confidence is the Max Softmax Probability. A sample is offloaded when it falls below the threshold τ:</p>
   <div class="formula">c = max(softmax(z))  →  LOCAL if c ≥ τ, OFFLOAD if c &lt; τ</div>
 
-  <h3>What we built</h3>
+  <h3>Provided by the starter repository</h3>
+  <p>Model loading for MobileNetV3-Small and ResNet-18, image preprocessing, JPEG compression, the packet format helpers (<code>IMGD</code> / <code>DATA</code>) and the basic socket setup.</p>
+
+  <h3>Our part</h3>
   <ul>
-    <li><strong>Image client:</strong> runs MobileNetV3-Small on each image, computes the MSP and applies the τ decision (default τ = 0.7). Offloaded images are resized to 224×224, compressed to JPEG (quality 75) and sent as one <code>IMGD</code> datagram (magic + metadata + JPEG). One packet per sample avoids UDP reordering.</li>
-    <li><strong>Server:</strong> listens on UDP, parses <code>IMGD</code> packets, classifies them with ResNet-18 (on CUDA) and replies with the prediction and confidence. The client can therefore measure the full round trip.</li>
-    <li><strong>Measurements:</strong> per-sample local inference time and offload round-trip time with <code>time.perf_counter()</code>, plus counters for bytes sent and received. The run ends with a report of offload rate, traffic and average latencies.</li>
+    <li><strong>Confidence and offloading decision:</strong> softmax over the client model's logits, MSP as confidence, and LOCAL / OFFLOAD with τ = 0.7.</li>
+    <li><strong>UDP communication:</strong> the client sends offloaded images to the server. The server handles <code>IMGD</code> packets, runs the provided ResNet-18 inference and replies with prediction and confidence.</li>
+    <li><strong>Measurements:</strong> local latency and offload round-trip latency with <code>time.perf_counter()</code>, byte counters, and a final report of offload rate, traffic and average latencies.</li>
   </ul>
 
   <h3>Results (100 samples, τ = 0.7)</h3>
@@ -121,14 +124,16 @@ a{color:var(--accent)}
 
   <h3>Pipeline</h3>
   <div class="pipeline">
-    <span>Capture frame</span><i>→</i><span>Detect markers (DICT_4X4_50)</span><i>→</i><span>Look up world corners</span><i>→</i><span>cv2.solvePnP</span><i>→</i><span>p<sub>cam</sub> = −Rᵀt</span><i>→</i><span>Speed + smoothing</span>
+    <span>Capture frame</span><i>→</i><span>Detect markers (DICT_4X4_50)</span><i>→</i><span>Look up world corners</span><i>→</i><span>cv2.solvePnP</span><i>→</i><span>p<sub>cam</sub> = −Rᵀt</span>
   </div>
 
-  <h3>What we built</h3>
+  <h3>Provided by the starter repository</h3>
+  <p>Camera capture, ArUco detection, the 3D marker corner construction, <code>solvePnP</code> pose estimation and the conversion to camera position, plus the calibration script and the marker maps (<code>marker_map_0–3.json</code>, 8 cm markers).</p>
+
+  <h3>Our part</h3>
   <ul>
-    <li><strong>Camera calibration:</strong> we captured 19 checkerboard images from different angles and distances, covering the centre and corners of the frame. <code>calibrate_camera.py</code> produced the camera matrix K and distortion coefficients d with a reprojection RMS of about <strong>1.05 px</strong>. They are stored in <code>camera_calib.npz</code>.</li>
-    <li><strong>Marker map:</strong> four track layouts (<code>marker_map_0–3.json</code>) with 8 cm markers. For example, map 0 places six markers along a gentle curve from (0.25, 0) to (1.38, 0) m. Helper scripts generate printable markers.</li>
-    <li><strong>Pose estimation:</strong> calibration loading and marker-map parsing are implemented. Each frame stacks the corners of every visible known marker into one <code>solvePnP</code> call, then converts the pose to the camera's (x, y) world position.</li>
+    <li><strong>Camera calibration:</strong> we captured 19 checkerboard images from different angles and distances, covering the centre and corners of the frame, and ran the provided script. It produced K and d with a reprojection RMS of about <strong>1.05 px</strong>.</li>
+    <li><strong>Loading calibration and marker map:</strong> reading K and d from <code>camera_calib.npz</code> and the marker positions from the JSON map, so the provided pose estimation can run.</li>
   </ul>
 </section>
 
@@ -143,6 +148,7 @@ a{color:var(--accent)}
   </table>
 
   <h3>Task 3-1: Lane following</h3>
+  <p>The skeleton gave us the vehicle and camera interface (Webots driver on the simulation side, serial connection on the Wave Rover). The lane detection and the steering below are our own work.</p>
   <p><strong>Sense.</strong> We warp each camera frame into a bird's-eye view (BEV) with a perspective homography. In the BEV, lane markings show up as roughly parallel vertical lines. The image is then converted to greyscale, Gaussian-blurred and contrast-enhanced with CLAHE. In the simulation, a horizontal Sobel filter finds the edges, and an HSV mask removes the grass verge so it can't produce fake edges. On the real car, Canny with thresholds set from the image median handles changing lab lighting better. Probabilistic Hough then extracts line segments.</p>
   <figure>
     <img src="assets/camera.png" alt="Simulated camera view of the highway from the car">
