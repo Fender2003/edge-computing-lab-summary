@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edge Computing Lab Summary</title>
+<meta name="description" content="Summary of the three tasks of the Hardware Lab Edge Computing 2026/27: hierarchical inference, ArUco speed estimation and autonomous driving.">
+<style>
+:root{
+  --bg:#fbfaf7;--surface:#ffffff;--text:#1d1d1b;--muted:#5f5e58;--line:#e4e1d8;
+  --accent:#1f6f5c;--accent-soft:#e3f0ec;--warn:#9a5b12;--warn-soft:#f8ecd9;--code:#f2f0ea;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#151614;--surface:#1d1f1c;--text:#ebe9e3;--muted:#a3a198;--line:#2f322d;
+    --accent:#6cc4a8;--accent-soft:#1d3029;--warn:#e0a55a;--warn-soft:#352a1b;--code:#262825;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151614;--surface:#1d1f1c;--text:#ebe9e3;--muted:#a3a198;--line:#2f322d;
+  --accent:#6cc4a8;--accent-soft:#1d3029;--warn:#e0a55a;--warn-soft:#352a1b;--code:#262825;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+header{padding:56px 0 28px;border-bottom:1px solid var(--line)}
+header p.kicker{margin:0;color:var(--accent);font-weight:600;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase}
+h1{font-size:2.1rem;line-height:1.2;margin:.3em 0 .4em}
+header p.lede{color:var(--muted);margin:0;max-width:62ch}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+nav a{padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:var(--text);text-decoration:none;font-size:.9rem;background:var(--surface)}
+nav a:hover{border-color:var(--accent);color:var(--accent)}
+section{padding:40px 0;border-bottom:1px solid var(--line)}
+h2{font-size:1.5rem;margin:0 0 .2em}
+h3{font-size:1.1rem;margin:1.6em 0 .4em}
+.tag{display:inline-block;font-size:.78rem;font-weight:600;padding:2px 10px;border-radius:999px;margin-bottom:12px}
+.tag.done{background:var(--accent-soft);color:var(--accent)}
+.tag.part{background:var(--warn-soft);color:var(--warn)}
+p{margin:.6em 0}
+ul{padding-left:1.2em;margin:.5em 0}
+li{margin:.25em 0}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.9em}
+.formula{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 16px;font-family:ui-monospace,Menlo,monospace;font-size:.95rem;overflow-x:auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:16px 0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.stat b{display:block;font-size:1.5rem;font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:.85rem}
+.pipeline{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:12px 0}
+.pipeline span{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-size:.88rem}
+.pipeline i{color:var(--muted);font-style:normal}
+figure{margin:20px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+figure img{width:100%;border-radius:8px;border:1px solid var(--line);image-rendering:pixelated}
+figcaption{grid-column:1/-1;color:var(--muted);font-size:.85rem}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin:12px 0}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.note{background:var(--warn-soft);border-radius:8px;padding:12px 16px;font-size:.92rem}
+footer{padding:32px 0 56px;color:var(--muted);font-size:.85rem}
+a{color:var(--accent)}
+@media (max-width:560px){h1{font-size:1.7rem}figure{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <p class="kicker">Hardware Lab · Edge Computing · WS 2026/27</p>
+    <h1>Edge Computing Lab: Task Summary</h1>
+    <p class="lede">Edge computing moves computation from distant cloud data centres to nodes close to where data is produced. That gives lower latency, less network traffic and better support for mobile, location-aware devices. The lab has three tasks built on that idea: selective offloading of inference, on-board speed estimation, and camera-based autonomous driving.</p>
+    <nav>
+      <a href="#task1">Task 1 · Hierarchical Inference</a>
+      <a href="#task2">Task 2 · ArUco Speed Estimation</a>
+      <a href="#task3">Task 3 · Autonomous Driving</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="task1">
+  <h2>Task 1: Edge Communication with Hierarchical Inference</h2>
+  <span class="tag done">Image client implemented and evaluated</span>
+  <p>The task is a UDP client–server system. Each client classifies its samples locally with a lightweight model and sends a sample to the server's stronger model <em>only when the local result is uncertain</em>. The idea: <strong>offload computation only when local confidence is too low.</strong></p>
+
+  <h3>Why it helps</h3>
+  <ul>
+    <li><strong>Bandwidth:</strong> easy samples never leave the device.</li>
+    <li><strong>Latency:</strong> local decisions skip the network round trip entirely.</li>
+    <li><strong>Energy:</strong> radio transmission usually costs more than a small local model.</li>
+    <li><strong>Scalability:</strong> the server only sees a fraction of requests, so it can serve more clients.</li>
+  </ul>
+
+  <h3>Setup</h3>
+  <table>
+    <tr><th></th><th>Client (edge)</th><th>Server</th></tr>
+    <tr><td>Images</td><td>MobileNetV3-Small</td><td>ResNet-18</td></tr>
+    <tr><td>Telemetry (JSON)</td><td><code>json_small.joblib</code></td><td><code>json_large.joblib</code></td></tr>
+  </table>
+  <p>Confidence is the Max Softmax Probability. A sample is offloaded when it falls below the threshold τ:</p>
+  <div class="formula">c = max(softmax(z))  →  LOCAL if c ≥ τ, OFFLOAD if c &lt; τ</div>
+
+  <h3>What we built</h3>
+  <ul>
+    <li><strong>Image client:</strong> runs MobileNetV3-Small on each image, computes the MSP and applies the τ decision (default τ = 0.7). Offloaded images are resized to 224×224, compressed to JPEG (quality 75) and sent as one <code>IMGD</code> datagram (magic + metadata + JPEG). One packet per sample avoids UDP reordering.</li>
+    <li><strong>Server:</strong> listens on UDP, parses <code>IMGD</code> packets, classifies them with ResNet-18 (on CUDA) and replies with the prediction and confidence. The client can therefore measure the full round trip.</li>
+    <li><strong>Measurements:</strong> per-sample local inference time and offload round-trip time with <code>time.perf_counter()</code>, plus counters for bytes sent and received. The run ends with a report of offload rate, traffic and average latencies.</li>
+  </ul>
+
+  <h3>Results (100 samples, τ = 0.7)</h3>
+  <div class="stats">
+    <div class="stat"><b>14 %</b><span>offload rate (14 of 100)</span></div>
+    <div class="stat"><b>24.7 kB/s</b><span>network traffic</span></div>
+    <div class="stat"><b>≈ 6 ms</b><span>median local inference</span></div>
+    <div class="stat"><b>≈ 6.3 ms</b><span>median offload round trip</span></div>
+  </div>
+  <p>The reported averages (15.8 ms local, 51.1 ms offload) are inflated by one-time warm-up costs on the first sample of each path: about 840 ms for the first local inference (CUDA initialisation) and about 630 ms for the first offload. Once warm, both paths take about 6 ms. Client and server ran on the same lab PC, so the network adds very little. 86 % of images never touched the network.</p>
+  <p class="note">The telemetry client (Client 2) is an optional extension. Only its skeleton is in the repository so far; the server's <code>DATA</code> handler is still open.</p>
+</section>
+
+<section id="task2">
+  <h2>Task 2: Speed Estimation with ArUco Markers</h2>
+  <span class="tag part">Calibration and pose done · speed computation in progress</span>
+  <p>A vehicle should estimate its own speed in real time using only its on-board camera. ArUco markers (square binary fiducials with known IDs and size) are placed at known positions on the track. Seeing them lets the car work out its own position, and speed is how far that position moves per unit of time:</p>
+  <div class="formula">v(t) = ‖p(t) − p(t − Δt)‖ / Δt</div>
+
+  <h3>Pipeline</h3>
+  <div class="pipeline">
+    <span>Capture frame</span><i>→</i><span>Detect markers (DICT_4X4_50)</span><i>→</i><span>Look up world corners</span><i>→</i><span>cv2.solvePnP</span><i>→</i><span>p<sub>cam</sub> = −Rᵀt</span><i>→</i><span>Speed + smoothing</span>
+  </div>
+
+  <h3>What we built</h3>
+  <ul>
+    <li><strong>Camera calibration:</strong> we captured 19 checkerboard images from different angles and distances, covering the centre and corners of the frame. <code>calibrate_camera.py</code> produced the camera matrix K and distortion coefficients d with a reprojection RMS of about <strong>1.05 px</strong>. They are stored in <code>camera_calib.npz</code>.</li>
+    <li><strong>Marker map:</strong> four track layouts (<code>marker_map_0–3.json</code>) with 8 cm markers. For example, map 0 places six markers along a gentle curve from (0.25, 0) to (1.38, 0) m. Helper scripts generate printable markers.</li>
+    <li><strong>Pose estimation:</strong> calibration loading and marker-map parsing are implemented. Each frame stacks the corners of every visible known marker into one <code>solvePnP</code> call, then converts the pose to the camera's (x, y) world position.</li>
+  </ul>
+
+  <h3>Still to do</h3>
+  <ul>
+    <li>Speed from consecutive positions, with EMA smoothing on position and a moving average or median on speed.</li>
+    <li>Robustness in curves: when no marker is visible, keep the last speed briefly, then report "not available".</li>
+    <li>Per-frame latency with <code>time.perf_counter()</code>, and an assessment of real-time suitability.</li>
+  </ul>
+</section>
+
+<section id="task3">
+  <h2>Task 3: Autonomous Driving</h2>
+  <span class="tag done">3-1 lane following: simulation and model car</span>
+  <span class="tag part">3-2 obstacle dodging: open</span>
+  <p>The car follows a road lane, and later dodges obstacles, using only a monocular camera. It runs on two platforms:</p>
+  <table>
+    <tr><th></th><th>Webots simulation</th><th>Wave Rover model car</th></tr>
+    <tr><td>Vehicle</td><td>Lincoln MKZ 2017</td><td>WaveShare Wave Rover + Raspberry Pi 4B</td></tr>
+    <tr><td>Steering</td><td>Ackermann (steering angle)</td><td>Differential drive (left/right wheel speed)</td></tr>
+    <tr><td>Track</td><td>3-lane highway, 3.75 m lanes</td><td>3-lane lab track, ≈ 1.7 m wide</td></tr>
+  </table>
+
+  <h3>Task 3-1: Lane following</h3>
+  <p><strong>Sense.</strong> We warp each camera frame into a bird's-eye view (BEV) with a perspective homography. In the BEV, lane markings show up as roughly parallel vertical lines. The image is then converted to greyscale, Gaussian-blurred and contrast-enhanced with CLAHE. In the simulation, a horizontal Sobel filter finds the edges, and an HSV mask removes the grass verge so it can't produce fake edges. On the real car, Canny with thresholds set from the image median handles changing lab lighting better. Probabilistic Hough then extracts line segments.</p>
+  <figure>
+    <img src="assets/camera.png" alt="Simulated camera view of the highway from the car">
+    <img src="assets/camera_after_computation.png" alt="Bird's-eye edge map with the chosen left lane line in red and right in blue">
+    <figcaption>Left: the simulated car's camera view. Right: the BEV edge map after processing. The selected left and right lane boundaries are highlighted in red and blue.</figcaption>
+  </figure>
+  <p><strong>Plan.</strong> For each Hough segment we fit x = m·y + b and evaluate it at the bottom of the image, where the vehicle is. The nearest segment to the left of the vehicle centre becomes the left boundary, and the nearest to the right becomes the right boundary. From these two lines we compute:</p>
+  <ul>
+    <li><strong>Lateral offset:</strong> the lane midpoint minus the vehicle centre, in pixels.</li>
+    <li><strong>Heading error:</strong> the mean angle of the two boundaries minus 90°.</li>
+  </ul>
+  <p><strong>Act.</strong> A proportional controller combines both errors:</p>
+  <div class="formula">steer = 0.005 · heading_error + 0.005 · lateral_offset,  clipped to ±0.5</div>
+  <p>In Webots this value goes straight to <code>setSteeringAngle</code> at a cruising speed of 30 km/h. On the Wave Rover it becomes differential wheel commands: the wheel on the inside of the turn slows from 0.5 to 0.4. The command is sent to the base controller as JSON over the Pi's serial port. Small gains and clipping keep the car from oscillating.</p>
+
+  <h3>Task 3-2: Dodging obstacles</h3>
+  <p>An open-ended extension of 3-1. The car must detect obstacles on the road and steer around them safely. Teams choose their own perception, planning and control approach. Heavy perception, such as a neural detector, can be offloaded to the lab's edge servers, the lab PC or your own laptop, just like the hierarchical inference in Task 1. This part has not been started yet.</p>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    Hardware Lab Edge Computing 2026/27 · Team 1. Further reading: W. Z. Khan et al., <em>Edge computing: A survey</em>, FGCS 2019; L. Kong et al., <em>Edge-computing-driven Internet of Things: A Survey</em>, ACM CSUR 2023.
+  </div>
+</footer>
+</body>
+</html>
